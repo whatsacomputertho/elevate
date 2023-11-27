@@ -1,6 +1,6 @@
 # Elevate
 
-An elevator simulation library for Rust
+> An elevator simulation library for Rust
 
 ## About
 
