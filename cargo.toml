@@ -1,7 +1,16 @@
 [package]
 name = "elevate"
 version = "0.1.0"
+authors = ["whatsacomputertho"]
 edition = "2021"
+description = "An elevator simulation library for Rust"
+readme = "README.md"
+homepage = "https://docs.rs/elevate-lib"
+repository = "https://github.com/whatsacomputertho/elevate"
+license = "GPL-2.0-only"
+license-file = "LICENSE"
+keywords = ["elevator","simulation","library","rust","elevate"]
+categories = ["simulation","visualization"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
