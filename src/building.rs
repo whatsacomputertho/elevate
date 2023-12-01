@@ -2,7 +2,6 @@
 use rand::Rng;
 use rand::distributions::Distribution;
 use statrs::distribution::Poisson;
-use crossterm::style::Stylize;
 
 //Import source modules
 use crate::person::Person;
@@ -216,12 +215,6 @@ impl std::fmt::Display for Building {
             //Initialize strings representing this floor
             let mut floor_roof: String = String::from("----\t||---\t||");
             let mut floor_body: String = format!("{:.2}\t||{}\t||", floor.dest_prob, floor.get_num_people());
-
-            //If this floor has people waiting, then color it yellow
-            if floor.are_people_waiting() {
-                floor_roof = floor_roof.yellow().to_string();
-                floor_body = floor_body.yellow().to_string();
-            }
 
             //Loop through the elevators to check if any are on this floor
             let mut last_elevator_on_floor: usize = 0_usize;
