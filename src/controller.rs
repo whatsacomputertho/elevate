@@ -4,7 +4,7 @@ use crate::floors::Floors;
 use crate::people::People;
 
 //Implement standard/imported modules
-use rand::rngs::ThreadRng;
+use rand::rngs::StdRng;
 use rand::distributions::{Distribution, Uniform};
 
 /// # `ElevatorController` trait
@@ -23,12 +23,12 @@ pub trait ElevatorController {
     pub building: Building,
     floors_to: Vec<Option<usize>>,
     dst_to: Uniform<usize>,
-    rng: ThreadRng
+    rng: StdRng
 }
 
 //Implement the RandomController interface
 impl RandomController {
-    /// Initialize a new RandomController given a `Building` and a `ThreadRng` (from
+    /// Initialize a new RandomController given a `Building` and a `StdRng` (from
     /// the rand library).
     ///
     /// ## Example
@@ -48,7 +48,7 @@ impl RandomController {
     ///     my_rng
     /// );
     /// ```
-    pub fn from(building: Building, rng: ThreadRng) -> RandomController {
+    pub fn from(building: Building, rng: StdRng) -> RandomController {
         //Get the number of floors and elevators in the building
         let num_floors: usize = building.floors.len();
         let num_elevators: usize = building.elevators.len();
