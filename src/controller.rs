@@ -11,6 +11,8 @@ use rand::distributions::{Distribution, Uniform};
 ///
 /// An `ElevatorController` implementation controls the elevators of a building.
 pub trait ElevatorController {
+    fn get_building(&mut self) -> &Building;
+
     fn update_elevators(&mut self);
 }
 
@@ -77,6 +79,11 @@ impl RandomController {
 
 //Implement the ElevatorController trait for the RandomController
 impl ElevatorController for RandomController {
+    /// Get the building belonging to the controller
+    fn get_building(&mut self) -> &Building {
+        &self.building
+    }
+
     /// If the destination floor is None, then randomize a new destination floor.
     /// If the elevator is not on its destination floor then move toward it.  If the
     /// elevator is on its destination floor then stop it and set its destination
@@ -145,6 +152,11 @@ impl NearestController {
 
 //Implement the ElevatorController trait for the NearestController
 impl ElevatorController for NearestController {
+    /// Get the building belonging to the controller
+    fn get_building(&mut self) -> &Building {
+        &self.building
+    }
+
     /// Decide each elevator's direction based on the nearest destination floor among
     /// people on the elevator, then the nearest floor with people waiting.
     fn update_elevators(&mut self) {
