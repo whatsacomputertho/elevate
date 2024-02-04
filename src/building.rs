@@ -1,7 +1,7 @@
 //Import external/standard modules
 use rand::Rng;
 use rand::distributions::Distribution;
-use statrs::distribution::Poisson;
+use statrs::distribution::{Poisson, Binomial};
 
 //Import source modules
 use crate::person::Person;
@@ -14,19 +14,29 @@ use crate::elevators::Elevators;
 //Constant representing the probability a person leaves the building during a time step
 const P_OUT: f64 = 0.05_f64;
 
+//Constant representing the probability a person leaves a tip
+const P_TIP: f64 = 0.5_f64;
+
+//Constants defining the Bernoulli distribution parameters to sample from to generate tips
+const DST_TIP_TRIALS: u64 = 100_u64;
+const DST_TIP_SUCCESS: f64 = 0.5_f64;
+
 /// # `Building` struct
 ///
 /// A `Building` aggregates `Elevator`s and `Floor`s.  It also tracks the everage
 /// energy usage by the elevators, and the average wait time among the people on
 /// the building's floors and elevators.  It randomly generates arrivals.
+#[derive(Clone)]
 pub struct Building {
     pub elevators: Vec<Elevator>,
     pub floors: Vec<Floor>,
     pub avg_energy: f64,
     pub avg_wait_time: f64,
+    pub tot_tips: f64,
     wait_time_denom: usize,
     p_in: f64,
-    dst_in: Poisson
+    dst_in: Poisson,
+    dst_tip: Binomial
 }
 
 /// # `Building` type implementation
@@ -90,8 +100,10 @@ impl Building {
             avg_energy: 0_f64,
             avg_wait_time: 0_f64,
             wait_time_denom: 0_usize,
+            tot_tips: 0_f64,
             p_in: p_in,
-            dst_in: dst_in
+            dst_in: dst_in,
+            dst_tip: Binomial::new(DST_TIP_SUCCESS, DST_TIP_TRIALS).unwrap()
         }
     }
 
@@ -142,12 +154,27 @@ impl Building {
 
         //Loop until no new arrivals occur, for each arrival append a new person
         for _ in 0_i32..self.dst_in.sample(&mut rng) as i32 {
-            let new_person: Person = Person::from(P_OUT, self.floors.len(), &mut rng);
+            let new_person: Person = Person::from(P_OUT, P_TIP, self.floors.len(), &mut rng);
             arrivals.push(new_person);
         }
 
         //Extend the first floor with the new arrivals
         self.floors[0].extend(arrivals);
+    }
+
+    /// Given the number of people who decided to tip, generate the total value of their tips
+    pub fn gen_tip_value(&self, num_tips: usize, rng: &mut impl Rng) -> f64 {
+        //Initialize a float to store the tip value
+        let mut tip_value: f64 = 0.0_f64;
+
+        //Sample the tip distribution for each tip, randomizing the value of the tip
+        //according to the tip distribution
+        for _ in 0..num_tips {
+            tip_value += self.dst_tip.sample(rng);
+        }
+
+        //Return the total tip value
+        tip_value
     }
 
     /// For each of the building's elevators, exchange people between the elevator and its
@@ -186,6 +213,14 @@ impl Building {
             elevator.extend(people_leaving_floor);
             self.floors[floor_index].extend(people_leaving_elevator);
         }
+    }
+
+    /// Removes anyone who is leaving the first floor, and generates tips
+    pub fn flush_and_update_tips(&mut self, rng: &mut impl Rng) {
+        let people_leaving_floor: Vec<Person> = self.floors.flush_first_floor();
+        let num_tips: usize = people_leaving_floor.gen_num_tips(rng);
+        let tip_value: f64 = self.gen_tip_value(num_tips, rng);
+        self.tot_tips += tip_value;
     }
 
     /// Update the average energy spent by the building's elevators given the time
@@ -241,6 +276,7 @@ impl std::fmt::Display for Building {
         //Add the average energy and wait times throughout the building
         let wait_time_str: String = format!("Average wait time:\t{:.2}", self.avg_wait_time);
         let energy_str: String = format!("Average energy spent:\t{:.2}", self.avg_energy);
+        let tip_str: String = format!("Total tips collected:\t${:.2}", self.tot_tips);
         building_status = [building_status, wait_time_str, energy_str].join("\n");
 
         //Format the string and return
@@ -276,9 +312,9 @@ impl Floors for Building {
         self.floors.gen_people_leaving(rng)
     }
 
-    /// Removes anyone who is leaving the first floor.
-    fn flush_first_floor(&mut self) {
-        self.floors.flush_first_floor();
+    /// Removes anyone who is leaving the first floor, and generates tips
+    fn flush_first_floor(&mut self) -> Vec<Person> {
+        self.floors.flush_first_floor()
     }
 
     /// Increments the waiting times among people who are waiting/not at their destination

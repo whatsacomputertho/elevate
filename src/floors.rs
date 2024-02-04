@@ -1,5 +1,6 @@
 //Import source modules
 use crate::floor::Floor;
+use crate::person::Person;
 use crate::people::People;
 
 //Import external/standard modules
@@ -29,7 +30,7 @@ pub trait Floors {
     fn gen_people_leaving(&mut self, rng: &mut impl Rng);
 
     /// Expected to remove anyone who is leaving the first floor.
-    fn flush_first_floor(&mut self);
+    fn flush_first_floor(&mut self) -> Vec<Person>;
 
     /// Expected to increment the waiting times among people who are waiting/not at their
     /// destination floor throughout the collection of floors.
@@ -110,9 +111,10 @@ impl Floors for Vec<Floor> {
         }
     }
 
-    /// Removes anyone who is leaving the first floor.
-    fn flush_first_floor(&mut self) {
-        self[0].flush_people_leaving_floor();
+    /// Removes anyone who is leaving the first floor and returns the people who left as
+    /// a vec of people.
+    fn flush_first_floor(&mut self) -> Vec<Person> {
+        self[0].flush_people_leaving_floor()
     }
 
     /// Increments the waiting times among people who are waiting/not at their destination

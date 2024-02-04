@@ -1,3 +1,6 @@
+//Import standard/imported modules
+use rand::Rng;
+
 //Import source modules
 use crate::person::Person;
 
@@ -7,6 +10,9 @@ use crate::person::Person;
 /// implemented by the `Elevator` and `Floor` structs.  It defines a set of functions
 /// for managing `Person`s in aggregate.
 pub trait People {
+    /// Expected to generate the number of tips to collect from the people
+    fn gen_num_tips(&self, rng: &mut impl Rng) -> usize;
+
     /// Expected to determine the destination floors for all people and return it as
     /// a vector.
     fn get_dest_floors(&self) -> Vec<usize>;
@@ -40,6 +46,22 @@ pub trait People {
 }
 
 impl People for Vec<Person> {
+    /// Generates the number of people among the collection of people who will tip.
+    fn gen_num_tips(&self, rng: &mut impl Rng) -> usize {
+        //Initialize a counter for the number of people who will tip
+        let mut num_tips: usize = 0_usize;
+
+        //Loop through the people and generate whether each person will tip
+        for pers in self.iter() {
+            if pers.gen_tip(rng) {
+                num_tips += 1_usize;
+            }
+        }
+
+        //Return the counter
+        num_tips
+    }
+
     /// Determines the destination floors for all people and returns it as a vector.
     fn get_dest_floors(&self) -> Vec<usize> {
         //Initialize a new vector of usizes

@@ -1,3 +1,6 @@
+//Import standard/imported modules
+use rand::Rng;
+
 //Import source modules
 use crate::person::Person;
 use crate::people::People;
@@ -7,6 +10,7 @@ use crate::people::People;
 /// An `Elevator` is aggregated by buildings, and transports people between floors.
 /// The `Elevator` struct generally should not be directly instantiated; instead it
 /// should be managed via the `Building` type and `ElevatorController` implementations.
+#[derive(Clone)]
 pub struct Elevator {
     pub floor_on: usize,
     pub moving_up: bool,
@@ -59,6 +63,24 @@ impl Elevator {
             };
         energy_spent
     }
+
+    /// Update the `stopped` and `moving_up` properties of the elevator given a
+    /// destination floor for the elevator.  The properties will be set such that
+    /// the elevator moves in the direction of the provided floor with respect to
+    /// its current floor when updated.
+    pub fn update_direction(&mut self, floor_to: usize) {
+        //If the elevator is not on its destination floor, then move toward it
+        if floor_to > self.floor_on {
+            self.stopped = false;
+            self.moving_up = true;
+        } else if floor_to < self.floor_on {
+            self.stopped = false;
+            self.moving_up = false;
+        //If the elevator is on its destination floor, then stop
+        } else {
+            self.stopped = true;
+        }
+    } 
 
     /// Use the `stopped` and `moving_up` properties of the elevator to update the
     /// elevator's floor index.  If stopped, then no change.  If moving up then
@@ -168,6 +190,11 @@ impl Extend<Person> for Elevator {
 
 //Implement the people trait for the elevator struct
 impl People for Elevator {
+    /// Generates the number of people among the collection of people who will tip.
+    fn gen_num_tips(&self, rng: &mut impl Rng) -> usize {
+        self.people.gen_num_tips(rng)
+    }
+
     /// Determines the destination floors for all people and returns it as a vector.
     fn get_dest_floors(&self) -> Vec<usize> {
         self.people.get_dest_floors()
