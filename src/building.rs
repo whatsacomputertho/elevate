@@ -223,6 +223,13 @@ impl Building {
         self.tot_tips += tip_value;
     }
 
+    /// Returns all tips collected by the building, and resets the total tips to 0
+    pub fn collect_tips(&mut self) -> f64 {
+        let tips: f64 = self.tot_tips;
+        self.tot_tips = 0.0_f64;
+        tips
+    }
+
     /// Update the average energy spent by the building's elevators given the time
     /// step and the energy spent during the time step.
     pub fn update_average_energy(&mut self, time_step: i32, energy_spent: f64) {
@@ -277,7 +284,7 @@ impl std::fmt::Display for Building {
         let wait_time_str: String = format!("Average wait time:\t{:.2}", self.avg_wait_time);
         let energy_str: String = format!("Average energy spent:\t{:.2}", self.avg_energy);
         let tip_str: String = format!("Total tips collected:\t${:.2}", self.tot_tips);
-        building_status = [building_status, wait_time_str, energy_str].join("\n");
+        building_status = [building_status, wait_time_str, energy_str, tip_str].join("\n");
 
         //Format the string and return
         f.write_str(&building_status)
