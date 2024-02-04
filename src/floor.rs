@@ -10,6 +10,7 @@ use crate::people::People;
 /// A `Floor` is aggregated by buildings.  People travel between them using
 /// elevators.  The floor struct generally should not be directly instantiated;
 /// instead it should be managed in aggregate via the `Building` type.
+#[derive(Clone)]
 pub struct Floor {
     people: Vec<Person>,
     pub dest_prob: f64
@@ -116,13 +117,27 @@ impl Floor {
 
     /// Remove people entirely who are leaving the building.  This is used exclusively
     /// on the first floor.
-    pub fn flush_people_leaving_floor(&mut self) {
-        //Loop through the floor and determine if anyone is leaving
-        self.people.retain_mut(|pers| if pers.is_leaving {
-            false
-        } else {
-            true
-        });
+    pub fn flush_people_leaving_floor(&mut self) -> Vec<Person> {
+        //Initialize a vector of people for the people leaving the floor
+        let mut people_leaving_floor: Vec<Person> = Vec::new();
+
+        //Loop through the people on the floor and add to the vec if leaving
+        let mut removals = 0_usize;
+        for i in 0..self.people.len() {
+            //If the person is not leaving, then skip
+            if !self.people[i-removals].is_leaving {
+                continue;
+            }
+
+            //If the person is leaving, then remove them from the floor
+            //and add them to the leaving vec, incrementing the removals
+            let person_leaving_floor: Person = self.people.remove(i - removals);
+            people_leaving_floor.push(person_leaving_floor);
+            removals += 1_usize;
+        }
+
+        //Return the vector of people leaving
+        people_leaving_floor
     }
 }
 
@@ -137,6 +152,11 @@ impl Extend<Person> for Floor {
 
 //Implement the people trait for the floor struct
 impl People for Floor {
+    /// Generates the number of people among the collection of people who will tip.
+    fn gen_num_tips(&self, rng: &mut impl Rng) -> usize {
+        self.people.gen_num_tips(rng)
+    }
+
     /// Determines the destination floors for all people on the floor and returns it as
     /// a vector.
     fn get_dest_floors(&self) -> Vec<usize> {
