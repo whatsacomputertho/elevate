@@ -170,7 +170,7 @@ impl Building {
         //Sample the tip distribution for each tip, randomizing the value of the tip
         //according to the tip distribution
         for _ in 0..num_tips {
-            tip_value += self.dst_tip.sample(rng);
+            tip_value += self.dst_tip.sample(rng) / 100_f64;
         }
 
         //Return the total tip value
