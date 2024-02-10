@@ -17,6 +17,8 @@ pub trait Elevators {
     fn update_floors(&mut self);
 
     fn increment_wait_times(&mut self);
+
+    fn append_elevator(&mut self, energy_up: f64, energy_down: f64, energy_coef: f64);
 }
 
 //Implementation of elevators trait for Vec<Elevators>
@@ -93,5 +95,10 @@ impl Elevators for Vec<Elevator> {
         for elevator in self.iter_mut() {
             elevator.increment_wait_times();
         }
+    }
+
+    /// Appends a new elevator to the collection of elevators
+    fn append_elevator(&mut self, energy_up: f64, energy_down: f64, energy_coef: f64) {
+        self.push(Elevator::from(energy_up, energy_down, energy_coef));
     }
 }

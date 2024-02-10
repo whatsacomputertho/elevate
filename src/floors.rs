@@ -35,6 +35,9 @@ pub trait Floors {
     /// Expected to increment the waiting times among people who are waiting/not at their
     /// destination floor throughout the collection of floors.
     fn increment_wait_times(&mut self);
+
+    /// Expected to append a new floor to the collection of floors.
+    fn append_floor(&mut self);
 }
 
 //Implement people trait for Vec<Floor>
@@ -123,5 +126,10 @@ impl Floors for Vec<Floor> {
         for floor in self.iter_mut() {
             floor.increment_wait_times();
         }
+    }
+
+    /// Appends a new floor to the collection of floors.
+    fn append_floor(&mut self) {
+        self.push(Floor::new());
     }
 }

@@ -239,6 +239,11 @@ impl Building {
             tmp_num / tmp_denom
         };
     }
+
+    /// Append a new elevator to the building
+    pub fn append_elevator(&mut self, energy_up: f64, energy_down: f64, energy_coef: f64) {
+        self.elevators.push(Elevator::from(energy_up, energy_down, energy_coef));
+    }
 }
 
 //Display trait implementation for a building
@@ -329,5 +334,10 @@ impl Floors for Building {
     fn increment_wait_times(&mut self) {
         self.elevators.increment_wait_times();
         self.floors.increment_wait_times();
+    }
+
+    /// Appends a new floor to the building.
+    fn append_floor(&mut self) {
+        self.floors.append_floor();
     }
 }
