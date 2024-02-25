@@ -32,6 +32,7 @@ pub trait ElevatorController {
 /// reaches its destination floor.
  pub struct RandomController {
     pub building: Building,
+    num_floors: usize,
     floors_to: Vec<Option<usize>>,
     dst_to: Uniform<usize>,
     p_rational: f64,
@@ -84,6 +85,7 @@ impl RandomController {
         //Initialize the controller
         RandomController {
             building: building,
+            num_floors: num_floors,
             floors_to: floors_to,
             dst_to: dst_to,
             p_rational: p_rational,
@@ -121,6 +123,21 @@ impl RandomController {
     /// Set the destination floors of the elevators randomly according to
     /// random or rational logic, depending on the p_rational
     pub fn update_floors_to(&mut self) {
+        //If the number of elevators in the building is greater than the number
+        //of destination floors in the controller, then add new destination
+        //floors
+        while self.building.elevators.len() > self.floors_to.len() {
+            self.floors_to.push(None);
+        }
+
+        //If the numer of floors in the building is greater than the number of
+        //floors tracked by the controller, then update the number of floors
+        //tracked by the controller and re-instantiate the dest distribution
+        if self.building.floors.len() != self.num_floors {
+            self.num_floors = self.building.floors.len();
+            self.dst_to = Uniform::new(0, self.num_floors);
+        }
+
         //Loop through the elevators in the building
         for (i, elevator) in self.building.elevators.iter().enumerate() {
             //If the destination floor for the elevator is None, then update it
