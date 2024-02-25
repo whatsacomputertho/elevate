@@ -16,9 +16,9 @@ pub struct Elevator {
     pub moving_up: bool,
     pub stopped: bool,
     pub people: Vec<Person>,
-    energy_up: f64,
-    energy_down: f64,
-    energy_coef: f64
+    pub energy_up: f64,
+    pub energy_down: f64,
+    pub energy_coef: f64
 }
 
 /// # Elevator type implementation
