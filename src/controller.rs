@@ -4,6 +4,7 @@ use crate::floors::Floors;
 use crate::people::People;
 
 //Implement standard/imported modules
+use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use rand::distributions::{Distribution, Uniform, Bernoulli};
 
@@ -41,8 +42,9 @@ pub trait ElevatorController {
 
 //Implement the RandomController interface
 impl RandomController {
-    /// Initialize a new RandomController given a `Building` and a `StdRng` (from
-    /// the rand library).
+    /// Initialize a new RandomController given a `Building`, an `StdRng` (from
+    /// the rand library), and an `f64` representing the probability that the
+    /// RandomController behaves rationally.
     ///
     /// ## Example
     ///
@@ -89,6 +91,31 @@ impl RandomController {
             upgradable: true,
             rng: rng
         }
+    }
+
+    /// Initialize a new RandomController from just a building.  The rng is
+    /// created on the fly, and the rational probability is defaulted to 0.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// let my_building: Building = Building::from(
+    ///     4_usize,
+    ///     2_usize,
+    ///     0.5_f64,
+    ///     5.0_f64,
+    ///     2.5_f64,
+    ///     0.5_f64
+    /// );
+    /// let my_controller: RandomController = RandomController::from(my_building);
+    /// ```
+    pub fn from_building(building: Building) -> RandomController {
+        //Initialize default values for the additional properties for this controller
+        let rng = StdRng::from_seed(rand::thread_rng().gen());
+        let p_rational = 0.0_f64;
+
+        //Initialize and return the RandomController
+        RandomController::from(building, rng, p_rational)
     }
 
     /// Set the destination floors of the elevators randomly according to
@@ -241,6 +268,29 @@ impl NearestController {
     /// let my_controller: NearestController = NearestController::from(my_building);
     /// ```
     pub fn from(building: Building) -> NearestController {
+        //Initialize the controller
+        NearestController {
+            building: building,
+            upgradable: false
+        }
+    }
+
+    /// Initialize a new NearestController from just a building
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// let my_building: Building = Building::from(
+    ///     4_usize,
+    ///     2_usize,
+    ///     0.5_f64,
+    ///     5.0_f64,
+    ///     2.5_f64,
+    ///     0.5_f64
+    /// );
+    /// let my_controller: NearestController = NearestController::from(my_building);
+    /// ```
+    pub fn from_building(building: Building) -> NearestController {
         //Initialize the controller
         NearestController {
             building: building,
