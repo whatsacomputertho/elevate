@@ -1,6 +1,6 @@
 [package]
 name = "elevate-lib"
-version = "0.1.9"
+version = "0.1.0-202403171309+1.0.0-alpha.1"
 authors = ["whatsacomputertho"]
 edition = "2021"
 description = "An elevator simulation library for Rust"

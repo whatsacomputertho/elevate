@@ -16,6 +16,7 @@ pub struct Elevator {
     pub moving_up: bool,
     pub stopped: bool,
     pub people: Vec<Person>,
+    pub capacity: usize,
     pub energy_up: f64,
     pub energy_down: f64,
     pub energy_coef: f64
@@ -34,17 +35,19 @@ impl Elevator {
     /// ### Example
     ///
     /// ```
+    /// let capacity: usize = 10_usize;
     /// let energy_up: f64 = 5.0_f64;
     /// let energy_down: f64 = 2.5_f64;
     /// let energy_coef: f64 = 0.5_f64;
-    /// let my_elev: Elevator = Elevator::from(energy_up, energy_down, energy_coef);
+    /// let my_elev: Elevator = Elevator::from(capacity, energy_up, energy_down, energy_coef);
     /// ```
-    pub fn from(energy_up: f64, energy_down: f64, energy_coef: f64) -> Elevator {
+    pub fn from(capacity: usize, energy_up: f64, energy_down: f64, energy_coef: f64) -> Elevator {
         Elevator {
             floor_on: 0_usize,
             moving_up: false,
             stopped: true,
             people: Vec::new(),
+            capacity: capacity,
             energy_up: energy_up,
             energy_down: energy_down,
             energy_coef: energy_coef
@@ -62,6 +65,11 @@ impl Elevator {
                 self.energy_down + (self.energy_coef * (self.people.len() as f64))
             };
         energy_spent
+    }
+
+    /// Calculate the free capacity for the elevator
+    pub fn get_free_capacity(&self) -> usize {
+        self.capacity - self.people.get_num_people()
     }
 
     /// Update the `stopped` and `moving_up` properties of the elevator given a
@@ -149,8 +157,10 @@ impl Elevator {
 
     /// If the elevator is stopped, this function returns a `Vec<Person>` containing
     /// the people on the elevator whose destination floor is the current floor.  If
-    /// the elevator is not stopped, this function returns an empty vector.
-    pub fn flush_people_leaving_elevator(&mut self) -> Vec<Person> {
+    /// the elevator is not stopped, this function returns an empty vector.  The people
+    /// removed from the elevator are limited to the free capacity of the floor they
+    /// are entering, which is given as a usize function parameter.
+    pub fn flush_people_leaving_elevator(&mut self, free_floor_capacity: usize) -> Vec<Person> {
         //Initialize a vector of people for the people leaving
         let mut people_leaving: Vec<Person> = Vec::new();
 
@@ -162,6 +172,12 @@ impl Elevator {
         //Loop through the people on the elevator and add to the vec
         let mut removals = 0_usize;
         for i in 0..self.people.len() {
+            //Break if the people entering the floor hits the floor's
+            //remaining free capacity
+            if people_leaving.len() == free_floor_capacity {
+                break;
+            }
+
             //If the person is not on their destination floor, then skip
             if self.people[i-removals].floor_on != self.people[i-removals].floor_to {
                 continue;
@@ -182,7 +198,17 @@ impl Elevator {
 //Implement the extend trait for the elevator struct
 impl Extend<Person> for Elevator {
     fn extend<T: IntoIterator<Item=Person>>(&mut self, iter: T) {
+        //Get the current number of people on the elevator
+        let num_people: usize = self.people.get_num_people();
+
+        //Add people into the elevator until at capacity
         for pers in iter {
+            //Break if we reach capacity
+            if num_people == self.capacity {
+                break;
+            }
+
+            //Add a person
             self.people.push(pers);
         }
     }

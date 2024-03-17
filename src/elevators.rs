@@ -1,6 +1,5 @@
 //Import source modules
 use crate::elevator::Elevator;
-use crate::person::Person;
 use crate::people::People;
 
 /// # `Elevators` trait
@@ -12,13 +11,13 @@ pub trait Elevators {
 
     fn get_energy_spent(&mut self) -> f64;
 
-    fn flush_people_leaving_elevators(&mut self) -> Vec<Vec<Person>>;
-
     fn update_floors(&mut self);
 
     fn increment_wait_times(&mut self);
 
-    fn append_elevator(&mut self, energy_up: f64, energy_down: f64, energy_coef: f64);
+    fn append_elevator(&mut self, capacity: usize, energy_up: f64, energy_down: f64, energy_coef: f64);
+
+    fn update_capacities(&mut self, capacity: usize);
 }
 
 //Implementation of elevators trait for Vec<Elevators>
@@ -63,24 +62,6 @@ impl Elevators for Vec<Elevator> {
         energy_spent
     }
 
-    /// For each elevator, flush anyone leaving the elevator and aggregate each
-    /// resulting `Vec<Person>` into a `Vec<Vec<Person>>`.
-    fn flush_people_leaving_elevators(&mut self) -> Vec<Vec<Person>> {
-        //Initialize a vector of vectors of people
-        let mut people_leaving_elevators: Vec<Vec<Person>> = Vec::new();
-
-        //Loop through all the elevators and flush the people leaving the elevator
-        for elevator in self.iter_mut() {
-            let people_leaving_elevator: Vec<Person> = elevator.flush_people_leaving_elevator();
-
-            //Append to the list of people leaving the elevators
-            people_leaving_elevators.push(people_leaving_elevator);
-        }
-
-        //Return the vector of vectors of people leaving each elevator
-        people_leaving_elevators
-    }
-
     /// For each elevator, update its floor based on its `stopped` boolean and its
     /// `moving_up` boolean.
     fn update_floors(&mut self) {
@@ -98,7 +79,31 @@ impl Elevators for Vec<Elevator> {
     }
 
     /// Appends a new elevator to the collection of elevators
-    fn append_elevator(&mut self, energy_up: f64, energy_down: f64, energy_coef: f64) {
-        self.push(Elevator::from(energy_up, energy_down, energy_coef));
+    fn append_elevator(&mut self, capacity: usize, energy_up: f64, energy_down: f64, energy_coef: f64) {
+        self.push(Elevator::from(capacity, energy_up, energy_down, energy_coef));
+    }
+
+    /// Updates the capacity across each of the elevators
+    fn update_capacities(&mut self, capacity: usize) {
+        //Ensure that the capacity is not less than the current
+        //numer of people on any given elevator
+        let can_update_capacities: bool = {
+            let mut tmp_can_update_capacities: bool = true;
+            for elevator in self.iter() {
+                if capacity < elevator.get_num_people() {
+                    tmp_can_update_capacities = false;
+                    break;
+                }
+            }
+            tmp_can_update_capacities
+        };
+
+        //If the capacity can be updated across all elevators,
+        //then update the capacities
+        if can_update_capacities {
+            for elevator in self.iter_mut() {
+                elevator.capacity = capacity;
+            }
+        }
     }
 }

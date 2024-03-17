@@ -54,6 +54,8 @@ impl Building {
     /// let num_floors: usize = 4_usize;
     /// let num_elevators: usize = 2_usize;
     /// let p_in: f64 = 0.5_f64;
+    /// let floor_capacity: usize = 100_usize;
+    /// let elevator_capacity: usize = 10_usize;
     /// let energy_up: f64 = 5.0_f64;
     /// let energy_down: f64 = 2.5_f64;
     /// let energy_coef: f64 = 0.5_f64;
@@ -66,13 +68,14 @@ impl Building {
     ///     energy_coef
     /// );
     /// ```
-    pub fn from(num_floors: usize, num_elevators: usize, p_in: f64, energy_up: f64,
-                energy_down: f64, energy_coef: f64) -> Building {
+    pub fn from(num_floors: usize, num_elevators: usize, p_in: f64,
+                floor_capacity: usize, elevator_capacity: usize,
+                energy_up: f64, energy_down: f64, energy_coef: f64) -> Building {
         //Initialize the Floors
         let floors: Vec<Floor> = {
             let mut tmp_floors: Vec<Floor> = Vec::new();
             for _ in 0_usize..num_floors {
-                let tmp_floor: Floor = Floor::new();
+                let tmp_floor: Floor = Floor::new(floor_capacity);
                 tmp_floors.push(tmp_floor);
             }
             tmp_floors
@@ -83,7 +86,7 @@ impl Building {
             let mut tmp_elevators: Vec<Elevator> = Vec::new();
             for _ in 0_usize..num_elevators {
                 let tmp_elevator: Elevator = Elevator::from(
-                    energy_up, energy_down, energy_coef
+                    elevator_capacity, energy_up, energy_down, energy_coef
                 );
                 tmp_elevators.push(tmp_elevator);
             }
@@ -190,9 +193,13 @@ impl Building {
             //Get the elevator's floor index
             let floor_index: usize = elevator.floor_on;
 
+            //Get the floor and elevator's free capacity
+            let floor_free_capacity: usize = self.floors[floor_index].get_free_capacity();
+            let elevator_free_capacity: usize = elevator.get_free_capacity();
+
             //Move people off the floor and off the elevator
-            let people_leaving_floor: Vec<Person> = self.floors[floor_index].flush_people_entering_elevator();
-            let mut people_leaving_elevator: Vec<Person> = elevator.flush_people_leaving_elevator();
+            let people_leaving_floor: Vec<Person> = self.floors[floor_index].flush_people_entering_elevator(elevator_free_capacity);
+            let mut people_leaving_elevator: Vec<Person> = elevator.flush_people_leaving_elevator(floor_free_capacity);
 
             //Aggregate the wait times of the people leaving the elevator into the average and reset
             let wait_times: usize = people_leaving_elevator.get_aggregate_wait_time();
@@ -241,8 +248,8 @@ impl Building {
     }
 
     /// Append a new elevator to the building
-    pub fn append_elevator(&mut self, energy_up: f64, energy_down: f64, energy_coef: f64) {
-        self.elevators.push(Elevator::from(energy_up, energy_down, energy_coef));
+    pub fn append_elevator(&mut self, capacity: usize, energy_up: f64, energy_down: f64, energy_coef: f64) {
+        self.elevators.push(Elevator::from(capacity, energy_up, energy_down, energy_coef));
     }
 }
 
@@ -261,7 +268,7 @@ impl std::fmt::Display for Building {
         for (i, floor) in self.floors.iter().enumerate() {
             //Initialize strings representing this floor
             let mut floor_roof: String = String::from("----\t||---\t||");
-            let mut floor_body: String = format!("{:.2}\t||{}\t||", floor.dest_prob, floor.get_num_people());
+            let mut floor_body: String = format!("{:.2}\t||{}/{}\t||", floor.dest_prob, floor.get_num_people(), floor.capacity);
 
             //Loop through the elevators to check if any are on this floor
             let mut last_elevator_on_floor: usize = 0_usize;
@@ -272,7 +279,7 @@ impl std::fmt::Display for Building {
 
                 //If the elevator is on this floor, then display it i spaces away from the building
                 let elevator_roof: String = format!("{}{}", str::repeat(&elevator_space, j - last_elevator_on_floor as usize), String::from("|-\t|"));
-                let elevator_body: String = format!("{}|{}\t|", str::repeat(&elevator_space, j - last_elevator_on_floor as usize), elevator.get_num_people());
+                let elevator_body: String = format!("{}|{}/{}\t|", str::repeat(&elevator_space, j - last_elevator_on_floor as usize), elevator.get_num_people(), elevator.capacity);
 
                 //Append the elevator to the floor strings
                 floor_roof.push_str(&elevator_roof);
@@ -337,7 +344,12 @@ impl Floors for Building {
     }
 
     /// Appends a new floor to the building.
-    fn append_floor(&mut self) {
-        self.floors.append_floor();
+    fn append_floor(&mut self, capacity: usize) {
+        self.floors.append_floor(capacity);
+    }
+
+    /// Updates the capacity across each of the floors
+    fn update_capacities(&mut self, capacity: usize) {
+        self.floors.update_capacities(capacity);
     }
 }
