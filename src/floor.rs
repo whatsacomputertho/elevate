@@ -160,13 +160,10 @@ impl Floor {
 //Implement the extend trait for the floor struct
 impl Extend<Person> for Floor {
     fn extend<T: IntoIterator<Item=Person>>(&mut self, iter: T) {
-        //Get the current number of people on the floor
-        let num_people: usize = self.people.get_num_people();
-
         //Add people onto the floor until at capacity
         for pers in iter {
             //Break if we reach capacity
-            if num_people == self.capacity {
+            if self.people.get_num_people() == self.capacity {
                 break;
             }
 
