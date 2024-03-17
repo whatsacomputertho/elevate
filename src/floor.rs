@@ -13,6 +13,7 @@ use crate::people::People;
 #[derive(Clone)]
 pub struct Floor {
     people: Vec<Person>,
+    pub capacity: usize,
     pub dest_prob: f64
 }
 
@@ -26,13 +27,20 @@ impl Floor {
     /// ## Example
     ///
     /// ```
-    /// let my_floor: Floor = Floor::new();
+    /// let capacity: usize = 100_usize;
+    /// let my_floor: Floor = Floor::new(capacity);
     /// ```
-    pub fn new() -> Floor {
+    pub fn new(capacity: usize) -> Floor {
         Floor {
             people: Vec::new(),
+            capacity: capacity,
             dest_prob: 0_f64
         }
+    }
+
+    /// Calculate the free capacity for the floor
+    pub fn get_free_capacity(&self) -> usize {
+        self.capacity - self.people.get_num_people()
     }
 
     /// Calculate the probability that a person on the floor leaves during the next
@@ -91,14 +99,22 @@ impl Floor {
 
     /// Remove people from a floor who are currently waiting/not on their desired floor
     /// and return as a `Vec<Person>`.  This is used when the elevator is on this floor
-    /// and there is an exchange of people between the elevator and the floor.
-    pub fn flush_people_entering_elevator(&mut self) -> Vec<Person> {
+    /// and there is an exchange of people between the elevator and the floor.  The people
+    /// removed from the floor are limited to the free capacity of the elevator they are
+    /// entering, which is given as a usize function parameter.
+    pub fn flush_people_entering_elevator(&mut self, free_elevator_capacity: usize) -> Vec<Person> {
         //Initialize a vector of people for the people entering the elevator
         let mut people_entering_elevator: Vec<Person> = Vec::new();
 
         //Loop through the people on the floor and add to the vec
         let mut removals = 0_usize;
         for i in 0..self.people.len() {
+            //Break if the people entering the elevator hits the elevator's
+            //remaining free capacity
+            if people_entering_elevator.len() == free_elevator_capacity {
+                break;
+            }
+            
             //If the person is not waiting, then skip
             if self.people[i-removals].floor_on == self.people[i-removals].floor_to {
                 continue;
@@ -144,7 +160,17 @@ impl Floor {
 //Implement the extend trait for the floor struct
 impl Extend<Person> for Floor {
     fn extend<T: IntoIterator<Item=Person>>(&mut self, iter: T) {
+        //Get the current number of people on the floor
+        let num_people: usize = self.people.get_num_people();
+
+        //Add people onto the floor until at capacity
         for pers in iter {
+            //Break if we reach capacity
+            if num_people == self.capacity {
+                break;
+            }
+
+            //Add a person
             self.people.push(pers);
         }
     }

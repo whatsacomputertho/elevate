@@ -37,7 +37,10 @@ pub trait Floors {
     fn increment_wait_times(&mut self);
 
     /// Expected to append a new floor to the collection of floors.
-    fn append_floor(&mut self);
+    fn append_floor(&mut self, capacity: usize);
+
+    /// Expected to update the capacities across each of the floors.
+    fn update_capacities(&mut self, capacity: usize);
 }
 
 //Implement people trait for Vec<Floor>
@@ -129,7 +132,31 @@ impl Floors for Vec<Floor> {
     }
 
     /// Appends a new floor to the collection of floors.
-    fn append_floor(&mut self) {
-        self.push(Floor::new());
+    fn append_floor(&mut self, capacity: usize) {
+        self.push(Floor::new(capacity));
+    }
+
+    /// Updates the capacity across each of the floors
+    fn update_capacities(&mut self, capacity: usize) {
+        //Ensure that the capacity is not less than the current
+        //numer of people on any given floor
+        let can_update_capacities: bool = {
+            let mut tmp_can_update_capacities: bool = true;
+            for floor in self.iter() {
+                if capacity < floor.get_num_people() {
+                    tmp_can_update_capacities = false;
+                    break;
+                }
+            }
+            tmp_can_update_capacities
+        };
+
+        //If the capacity can be updated across all floors, then
+        //update the capacities
+        if can_update_capacities {
+            for floor in self.iter_mut() {
+                floor.capacity = capacity;
+            }
+        }
     }
 }
