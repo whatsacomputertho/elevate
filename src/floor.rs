@@ -200,6 +200,11 @@ impl People for Floor {
         self.people.get_num_people_waiting()
     }
 
+    /// Determines the number of people going to a particular floor
+    fn get_num_people_going_to_floor(&self, floor_to: usize) -> usize {
+        self.people.get_num_people_going_to_floor(floor_to)
+    }
+
     /// Reads the wait times from people waiting on the floor/not at their desired floor
     /// and aggregates the total into a usize.
     fn get_aggregate_wait_time(&self) -> usize {

@@ -24,6 +24,9 @@ pub trait People {
     /// desired floor.
     fn get_num_people_waiting(&self) -> usize;
 
+    /// Expected to determine the number of people going to a particular floor
+    fn get_num_people_going_to_floor(&self, floor_to: usize) -> usize;
+
     /// Expected to read the wait times from people waiting/not at their desired floor
     /// and aggregate the total into a usize.
     fn get_aggregate_wait_time(&self) -> usize;
@@ -102,6 +105,26 @@ impl People for Vec<Person> {
 
         //Return the counter
         num_waiting
+    }
+
+    /// Determines the number of people going to a particular floor
+    fn get_num_people_going_to_floor(&self, floor_to: usize) -> usize {
+        //Initialize a usize counting the number of people going to the floor
+        let mut num_going_to_floor: usize = 0_usize;
+
+        //Loop through the vector of persons
+        for pers in self.iter() {
+            //Skip if the person is not going to that floor
+            if pers.floor_to != floor_to {
+                continue;
+            }
+
+            //If the person is going to that floor, increment the counter
+            num_going_to_floor += 1_usize;
+        }
+
+        //Return the counter
+        num_going_to_floor
     }
 
     /// Reads the wait times from people waiting/not at their desired floor and aggregates

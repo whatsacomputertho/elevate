@@ -193,13 +193,26 @@ impl Building {
             //Get the elevator's floor index
             let floor_index: usize = elevator.floor_on;
 
-            //Get the floor and elevator's free capacity
+            //Get the floor's free capacity and the floor's waiting capacity
             let floor_free_capacity: usize = self.floors[floor_index].get_free_capacity();
+            let floor_wait_capacity: usize = self.floors[floor_index].get_num_people_waiting();
+            let floor_exchange_capacity: usize = floor_free_capacity + floor_wait_capacity;
+
+            //Get the elevator's free capacity and the elevator's leaving capacity
             let elevator_free_capacity: usize = elevator.get_free_capacity();
+            let elevator_leav_capacity: usize = elevator.get_num_people_going_to_floor(floor_index);
+            let elevator_exchange_capacity: usize = elevator_free_capacity + elevator_leav_capacity;
+
+            //Calculate the exchange capacity using the floor and elevator capacities
+            let exchange_capacity: usize = if floor_exchange_capacity > elevator_exchange_capacity {
+                floor_exchange_capacity - elevator_exchange_capacity
+            } else {
+                elevator_exchange_capacity - floor_exchange_capacity
+            };
 
             //Move people off the floor and off the elevator
-            let people_leaving_floor: Vec<Person> = self.floors[floor_index].flush_people_entering_elevator(elevator_free_capacity);
-            let mut people_leaving_elevator: Vec<Person> = elevator.flush_people_leaving_elevator(floor_free_capacity);
+            let people_leaving_floor: Vec<Person> = self.floors[floor_index].flush_people_entering_elevator(exchange_capacity);
+            let mut people_leaving_elevator: Vec<Person> = elevator.flush_people_leaving_elevator(exchange_capacity);
 
             //Aggregate the wait times of the people leaving the elevator into the average and reset
             let wait_times: usize = people_leaving_elevator.get_aggregate_wait_time();
