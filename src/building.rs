@@ -205,9 +205,9 @@ impl Building {
 
             //Calculate the exchange capacity using the floor and elevator capacities
             let exchange_capacity: usize = if floor_exchange_capacity > elevator_exchange_capacity {
-                floor_exchange_capacity - elevator_exchange_capacity
+                elevator_exchange_capacity
             } else {
-                elevator_exchange_capacity - floor_exchange_capacity
+                floor_exchange_capacity
             };
 
             //Move people off the floor and off the elevator
